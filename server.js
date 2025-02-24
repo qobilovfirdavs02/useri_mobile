@@ -1,22 +1,32 @@
 const express = require('express');
+const serverless = require('serverless-http');
 const { Pool } = require('pg');
 const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 5000;
-
 app.use(cors());
 app.use(express.json());
 
-// PostgreSQL ulanish
+// PostgreSQL ulanish (Neon bilan)
 const pool = new Pool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
-    ssl: { rejectUnauthorized: false } // Neon uchun SSL
+    ssl: { rejectUnauthorized: false }
+});
+
+// Test endpoint
+app.get('/test', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT NOW()');
+        res.json({ message: 'Ulanish muvaffaqiyatli', time: result.rows[0].now });
+    } catch (error) {
+        console.error('Ulanish xatosi:', error);
+        res.status(500).json({ message: 'Ulanishda xato', error: error.message });
+    }
 });
 
 // Kontakt qo‘shish
@@ -72,6 +82,5 @@ app.post('/api/contacts/search', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server http://localhost:${port} da ishlamoqda`);
-});
+// Vercel uchun serverless handler
+module.exports.handler = serverless(app);
