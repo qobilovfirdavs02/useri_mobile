@@ -178,4 +178,4 @@ app.post('/api/contacts/search', async (req, res) => {
     }
 });
 
-module.exports.handler = serverless(app);
+module.exports = app;
