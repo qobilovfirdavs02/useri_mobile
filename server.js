@@ -83,4 +83,4 @@ app.post('/api/contacts/search', async (req, res) => {
 });
 
 // Vercel uchun serverless handler
-module.exports.handler = serverless(app);
+module.exports = app;
