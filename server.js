@@ -16,10 +16,8 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
-    ssl: process.env.DB_HOST.includes('neon.tech') ? { rejectUnauthorized: false } : false // Neon uchun SSL
+    ssl: { rejectUnauthorized: false } // Neon uchun SSL
 });
-
-
 
 // Kontakt qo‘shish
 app.post('/api/contacts', async (req, res) => {
