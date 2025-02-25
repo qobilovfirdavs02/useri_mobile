@@ -29,15 +29,15 @@
 //     }
 // });
 
-// // Kontakt qo‘shish (takrorlanishni tekshirish bilan)
+// // Kontakt qo‘shish (yangi maydonlar bilan)
 // app.post('/api/contacts', async (req, res) => {
-//     const { name, email } = req.body;
+//     const { name, passport_id, phone_number, inn, email } = req.body;
 //     if (!name || !email) {
-//         return res.status(400).json({ message: 'Ism va email kerak' });
+//         return res.status(400).json({ message: 'Ism va email majburiy' });
 //     }
 
 //     try {
-//         // Avval mavjudligini tekshirish
+//         // Mavjudligini tekshirish (name va email bo‘yicha)
 //         const checkResult = await pool.query(
 //             'SELECT * FROM contacts WHERE name = $1 AND email = $2',
 //             [name, email]
@@ -46,10 +46,10 @@
 //             return res.status(409).json({ message: 'Foydalanuvchi allaqachon mavjud' });
 //         }
 
-//         // Agar mavjud bo‘lmasa, qo‘shish
+//         // Yangi kontakt qo‘shish
 //         const insertResult = await pool.query(
-//             'INSERT INTO contacts (name, email) VALUES ($1, $2) RETURNING *',
-//             [name, email]
+//             'INSERT INTO contacts (name, passport_id, phone_number, inn, email) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+//             [name, passport_id || null, phone_number || null, inn || null, email]
 //         );
 //         res.status(201).json(insertResult.rows[0]);
 //     } catch (error) {
@@ -69,9 +69,9 @@
 //     }
 // });
 
-// // Qidiruv endpoint’i
+// // Qidiruv endpoint’i (yangi maydonlar bilan)
 // app.post('/api/contacts/search', async (req, res) => {
-//     const { name, email } = req.body;
+//     const { name, passport_id, phone_number, inn, email } = req.body;
 //     if (!name || !email) {
 //         return res.status(400).json({ message: 'Ism va email kerak' });
 //     }
@@ -93,7 +93,6 @@
 // });
 
 // module.exports = app;
-
 const express = require('express');
 const serverless = require('serverless-http');
 const { Pool } = require('pg');
@@ -125,7 +124,7 @@ app.get('/test', async (req, res) => {
     }
 });
 
-// Kontakt qo‘shish (yangi maydonlar bilan)
+// Kontakt qo‘shish
 app.post('/api/contacts', async (req, res) => {
     const { name, passport_id, phone_number, inn, email } = req.body;
     if (!name || !email) {
@@ -133,7 +132,6 @@ app.post('/api/contacts', async (req, res) => {
     }
 
     try {
-        // Mavjudligini tekshirish (name va email bo‘yicha)
         const checkResult = await pool.query(
             'SELECT * FROM contacts WHERE name = $1 AND email = $2',
             [name, email]
@@ -142,7 +140,6 @@ app.post('/api/contacts', async (req, res) => {
             return res.status(409).json({ message: 'Foydalanuvchi allaqachon mavjud' });
         }
 
-        // Yangi kontakt qo‘shish
         const insertResult = await pool.query(
             'INSERT INTO contacts (name, passport_id, phone_number, inn, email) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [name, passport_id || null, phone_number || null, inn || null, email]
@@ -165,17 +162,17 @@ app.get('/api/contacts', async (req, res) => {
     }
 });
 
-// Qidiruv endpoint’i (yangi maydonlar bilan)
+// Qidiruv endpoint’i (faqat name va passport_id bilan)
 app.post('/api/contacts/search', async (req, res) => {
-    const { name, passport_id, phone_number, inn, email } = req.body;
-    if (!name || !email) {
-        return res.status(400).json({ message: 'Ism va email kerak' });
+    const { name, passport_id } = req.body;
+    if (!name || !passport_id) {
+        return res.status(400).json({ message: 'Ism va pasport ID kerak' });
     }
 
     try {
         const result = await pool.query(
-            'SELECT * FROM contacts WHERE name = $1 AND email = $2',
-            [name, email]
+            'SELECT * FROM contacts WHERE name = $1 AND passport_id = $2',
+            [name, passport_id]
         );
         if (result.rows.length > 0) {
             res.json({ found: true, contact: result.rows[0] });
